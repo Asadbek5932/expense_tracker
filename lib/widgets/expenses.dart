@@ -31,9 +31,33 @@ class _ExpensesState extends State<Expenses> {
         date: DateTime.now(),
         category: Category.food),
   ];
-  
-  void _openAddNewExpenseScreen () {
-    showModalBottomSheet(context: context, builder: (ctx) => NewExpense(workingWithReturnValues));
+
+  void deleteExpense(Expense expense) {
+    final index = expenses.indexOf(expense);
+    setState(() {
+      expenses.remove(expense);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(seconds: 3),
+      content: Text('Expense deleted'),
+      action: SnackBarAction(
+        label: 'Undo',
+        onPressed: () {
+          setState(() {
+            expenses.insert(index, expense);
+          });
+        },
+      ),
+    ));
+  }
+
+  void _openAddNewExpenseScreen() {
+    showModalBottomSheet(
+        useSafeArea: true,
+        isScrollControlled: true,
+        context: context,
+        builder: (ctx) => NewExpense(workingWithReturnValues));
   }
 
   void workingWithReturnValues(Expense expense) {
@@ -44,18 +68,41 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+
+    Widget mainContent = Center(
+      child: Text('Enter the list of expenses'),
+    );
+
+    if (expenses.isNotEmpty) {
+      mainContent = ExpensesList(expenses: expenses, onDismiss: deleteExpense);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('Expense tracker'),
-        actions: [IconButton(onPressed: _openAddNewExpenseScreen, icon: Icon(Icons.add))],
-      ),
-      body: Column(
-        children: [
-          const Text('The chart'),
-          SizedBox(height: 5,),
-          Expanded(child: ExpensesList(expenses: expenses)),
+        actions: [
+          IconButton(onPressed: _openAddNewExpenseScreen, icon: Icon(Icons.add))
         ],
       ),
+      body: width <= 414
+          ? Column(
+              children: [
+                const Text('The chart'),
+                SizedBox(
+                  height: 5,
+                ),
+                Expanded(child: mainContent),
+              ],
+            )
+          : Row(
+              children: [
+                const Text('The chart'),
+                SizedBox(
+                  height: 5,
+                ),
+                Expanded(child: mainContent),
+              ],
+            ),
     );
   }
 }

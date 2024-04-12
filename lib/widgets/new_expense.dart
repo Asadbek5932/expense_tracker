@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 
 final formatter = DateFormat.yMd();
 
@@ -28,26 +30,49 @@ class _NewExpenseState extends State<NewExpense> {
     super.dispose();
   }
 
-  void _saveNewExpense() {
-    final enteredNumber = double.tryParse(_numberController.text);
-    if (_textController.text.trim().isEmpty ||
-        enteredNumber == null ||
-        date == null) {
+  void _showTheDialog() {
+    if (Platform.isIOS) {
+      showCupertinoDialog(context: context, builder: (ctx) =>
+          CupertinoAlertDialog(
+            title: Text('Invalid input'),
+            content: Text('Make sure that all user inputs are correct.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Ok'),
+              ),
+            ],
+          ));
+    } else {
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Invalid input'),
-          content: Text('Make sure that all user inputs are correct.'),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Ok'),
+        builder: (ctx) =>
+            AlertDialog(
+              title: Text('Invalid input'),
+              content: Text('Make sure that all user inputs are correct.'),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Ok'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
+    }
+  }
+
+  void _saveNewExpense() {
+    final enteredNumber = double.tryParse(_numberController.text);
+    if (_textController.text
+        .trim()
+        .isEmpty ||
+        enteredNumber == null ||
+        date == null) {
+      _showTheDialog();
       return;
     }
     Expense expense = Expense(
@@ -63,7 +88,7 @@ class _NewExpenseState extends State<NewExpense> {
     var firstDate = DateTime.now();
     var lastDate = DateTime(firstDate.year - 1, firstDate.month, firstDate.day);
     var lastDate2 =
-        DateTime(firstDate.year + 10, firstDate.month, firstDate.day);
+    DateTime(firstDate.year + 10, firstDate.month, firstDate.day);
     final result = await showDatePicker(
       context: context,
       initialDate: firstDate,
@@ -78,7 +103,7 @@ class _NewExpenseState extends State<NewExpense> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(8),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         children: [
           TextField(
@@ -130,11 +155,12 @@ class _NewExpenseState extends State<NewExpense> {
                 value: _selectedCategory,
                 items: Category.values
                     .map(
-                      (value) => DropdownMenuItem(
+                      (value) =>
+                      DropdownMenuItem(
                         value: value,
                         child: Text(value.name.toUpperCase()),
                       ),
-                    )
+                )
                     .toList(),
                 onChanged: (value) {
                   if (value == null) {
